@@ -1,8 +1,22 @@
+// Replace this with your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAEhaVtrS1w6nMANxKLQVIYgb10sRWpF9U",
+  authDomain: "pantry-tracker-8480b.firebaseapp.com",
+  projectId: "pantry-tracker-8480b",
+  storageBucket: "pantry-tracker-8480b.firebasestorage.app",
+  messagingSenderId: "952569445195",
+  appId: "1:952569445195:web:740243b83649d466fb86ce"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
 function PantryTracker() {
-    const [items, setItems] = React.useState(() => {
-        const savedItems = localStorage.getItem('pantryItems');
-        return savedItems ? JSON.parse(savedItems) : [];
-    });
+    const [items, setItems] = React.useState([]);
+    const [user, setUser] = React.useState(null);
+    const [loading, setLoading] = React.useState(true);
 
     const [newItem, setNewItem] = React.useState({
         name: '',
@@ -11,54 +25,108 @@ function PantryTracker() {
         expiryDate: ''
     });
 
+    // Handle authentication
     React.useEffect(() => {
-        localStorage.setItem('pantryItems', JSON.stringify(items));
-    }, [items]);
+        const unsubscribe = auth.onAuthStateChanged(user => {
+            setUser(user);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
-    const addItem = (e) => {
+    // Load items from Firestore
+    React.useEffect(() => {
+        if (!user) return;
+
+        const unsubscribe = db.collection('pantries')
+            .doc(user.uid)
+            .collection('items')
+            .onSnapshot(snapshot => {
+                const newItems = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setItems(newItems);
+            });
+
+        return () => unsubscribe();
+    }, [user]);
+
+    const signIn = async () => {
+        try {
+            await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+        } catch (error) {
+            console.error("Error signing in:", error);
+            alert("Error signing in. Please try again.");
+        }
+    };
+
+    const signOut = () => {
+        auth.signOut();
+    };
+
+    const addItem = async (e) => {
         e.preventDefault();
-        if (newItem.name && newItem.quantity) {
-            setItems([...items, { ...newItem, id: Date.now() }]);
+        if (!user || !newItem.name || !newItem.quantity) return;
+
+        try {
+            await db.collection('pantries')
+                .doc(user.uid)
+                .collection('items')
+                .add({
+                    ...newItem,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
             setNewItem({ name: '', quantity: '', unit: '', expiryDate: '' });
+        } catch (error) {
+            console.error("Error adding item:", error);
+            alert("Error adding item. Please try again.");
         }
     };
 
-    const deleteItem = (id) => {
-        setItems(items.filter(item => item.id !== id));
-    };
+    const deleteItem = async (id) => {
+        if (!user) return;
 
-    const exportData = () => {
-        const dataStr = JSON.stringify(items, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'pantry-inventory.json';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    };
-
-    const importData = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const importedItems = JSON.parse(e.target.result);
-                    setItems(importedItems);
-                } catch (error) {
-                    alert('Error importing file. Please make sure it\'s a valid JSON file.');
-                }
-            };
-            reader.readAsText(file);
+        try {
+            await db.collection('pantries')
+                .doc(user.uid)
+                .collection('items')
+                .doc(id)
+                .delete();
+        } catch (error) {
+            console.error("Error deleting item:", error);
+            alert("Error deleting item. Please try again.");
         }
     };
+
+    if (loading) {
+        return <div className="container">Loading...</div>;
+    }
+
+    if (!user) {
+        return (
+            <div className="container">
+                <h1 className="title">Pantry Tracker</h1>
+                <p className="login-prompt">Please sign in to use the pantry tracker:</p>
+                <button onClick={signIn} className="button button-sign-in">
+                    Sign in with Google
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="container">
-            <h1 className="title">My Pantry Inventory</h1>
+            <div className="header">
+                <h1 className="title">My Pantry Inventory</h1>
+                <div className="user-info">
+                    <span>Signed in as {user.email}</span>
+                    <button onClick={signOut} className="button button-sign-out">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
             
             <form onSubmit={addItem} className="form">
                 <input
@@ -92,21 +160,6 @@ function PantryTracker() {
                     Add Item
                 </button>
             </form>
-
-            <div className="tools">
-                <button onClick={exportData} className="button button-export">
-                    Export Data
-                </button>
-                <label className="button button-import">
-                    Import Data
-                    <input
-                        type="file"
-                        accept=".json"
-                        onChange={importData}
-                        style={{ display: 'none' }}
-                    />
-                </label>
-            </div>
 
             <div className="items">
                 {items.map(item => (
