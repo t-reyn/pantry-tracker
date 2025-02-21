@@ -19,10 +19,27 @@ body {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
 .title {
     font-size: 24px;
     font-weight: bold;
-    margin-bottom: 20px;
+}
+
+.login-prompt {
+    margin: 20px 0;
 }
 
 .form {
@@ -67,14 +84,14 @@ body {
     color: white;
 }
 
-.button-export {
-    background-color: #2196F3;
+.button-sign-in {
+    background-color: #4285f4;
     color: white;
 }
 
-.button-import {
-    background-color: #FFC107;
-    color: black;
+.button-sign-out {
+    background-color: #f1f3f4;
+    color: #3c4043;
 }
 
 .item {
@@ -98,10 +115,4 @@ body {
     cursor: pointer;
     font-size: 18px;
     padding: 0 8px;
-}
-
-.tools {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
 }
