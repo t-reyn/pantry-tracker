@@ -12,12 +12,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
-const user = firebase.auth().currentUser; // Get current signed-in user
 
 let items = [];
 let filteredItems = [];
 
-// Handling dark/light mode toggle
+// Handle dark/light mode toggle
 const toggleThemeButton = document.getElementById("toggle-theme");
 const currentTheme = localStorage.getItem("theme");
 if (currentTheme === "dark") {
@@ -29,16 +28,17 @@ toggleThemeButton.addEventListener("click", () => {
   localStorage.setItem("theme", isDarkMode ? "dark" : "light");
 });
 
-// Handle item addition and categorization
+// Handle item addition
 document.querySelector(".form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const itemName = document.querySelector("input[type='text']").value;
-  const quantity = document.querySelector("input[type='number']").value;
-  const category = document.querySelector("select").value;
+  
+  const itemName = document.getElementById("item-name").value;
+  const quantity = document.getElementById("item-quantity").value;
+  const category = document.getElementById("item-category").value;
 
   try {
     await db.collection("pantries")
-      .doc(user.uid)
+      .doc(auth.currentUser.uid)
       .collection("items")
       .add({
         name: itemName,
@@ -47,6 +47,7 @@ document.querySelector(".form").addEventListener("submit", async (e) => {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
     alert("Item added!");
+    fetchItems();  // Reload items after adding
   } catch (error) {
     console.error("Error adding item:", error);
     alert("Error adding item. Please try again.");
@@ -55,7 +56,7 @@ document.querySelector(".form").addEventListener("submit", async (e) => {
 
 // Fetching and displaying items
 const fetchItems = async () => {
-  const snapshot = await db.collection("pantries").doc(user.uid).collection("items").get();
+  const snapshot = await db.collection("pantries").doc(auth.currentUser.uid).collection("items").get();
   items = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
   filteredItems = items; // Initially show all items
   renderItems();
@@ -79,7 +80,7 @@ document.getElementById("category-filter").addEventListener("change", (e) => {
   renderItems();
 });
 
-// Sorting items by name, quantity, or expiry
+// Sorting items
 const sortItems = (by) => {
   filteredItems = [...filteredItems].sort((a, b) => {
     if (by === "name") return a.name.localeCompare(b.name);
@@ -89,6 +90,7 @@ const sortItems = (by) => {
   renderItems();
 };
 
+// Render the list of items
 const renderItems = () => {
   const itemsContainer = document.querySelector(".items");
   itemsContainer.innerHTML = '';
@@ -105,10 +107,10 @@ const renderItems = () => {
 
 // Delete item
 const deleteItem = async (id) => {
-  await db.collection("pantries").doc(user.uid).collection("items").doc(id).delete();
+  await db.collection("pantries").doc(auth.currentUser.uid).collection("items").doc(id).delete();
   alert("Item deleted!");
   fetchItems(); // Refresh item list
 };
 
-// Call fetchItems on load to get and display pantry data
+// Initial fetch of items
 fetchItems();
