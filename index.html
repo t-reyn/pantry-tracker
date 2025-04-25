@@ -1,60 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pantry Tracker</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantry Tracker</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="container">
-    <header class="header">
-      <h1 class="title">My Pantry Inventory</h1>
-      <div class="user-info">
-        <span id="user-email">Signed in as example@email.com</span>
-        <button class="button button-sign-out">Sign Out</button>
-      </div>
-    </header>
+    <div class="container">
+        <h1 class="title">My Pantry Inventory</h1>
+        
+        <div class="header">
+            <h2>Your Pantry</h2>
+            <div class="user-info">
+                <span>Signed in as <span id="user-email"></span></span>
+                <button onclick="signOut()" class="button button-sign-out">Sign Out</button>
+            </div>
+        </div>
 
-    <section class="form-section">
-      <form class="form">
-        <input type="text" id="filter-name" placeholder="Search items" />
-        <select id="category-filter">
-          <option value="">All Categories</option>
-          <option value="Produce">Produce</option>
-          <option value="Pantry">Pantry</option>
-          <option value="Dairy">Dairy</option>
-        </select>
-        <button type="submit" class="button">Add Item</button>
-      </form>
-    </section>
+        <form class="form">
+            <input type="text" id="item-name" placeholder="Item Name" required />
+            <input type="number" id="item-quantity" placeholder="Quantity" required />
+            <select id="item-category">
+                <option value="Dairy">Dairy</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Grains">Grains</option>
+                <!-- Add more categories as needed -->
+            </select>
+            <button type="submit" class="button button-add-item">Add Item</button>
+        </form>
 
-    <section class="tools">
-      <button class="button button-export">Export Data</button>
-      <label class="button button-import">
-        Import Data
-        <input type="file" accept=".json" style="display: none" />
-      </label>
-      <div class="theme-toggle">
-        <button id="toggle-theme" class="button">Toggle Light/Dark Mode</button>
-      </div>
-    </section>
+        <div class="tools">
+            <button onclick="exportData()" class="button button-export">Export Data</button>
+            <label class="button button-import">
+                Import Data
+                <input type="file" accept=".json" onchange="importData(event)" style="display: none" />
+            </label>
+            <button id="toggle-theme" class="button">Toggle Dark Mode</button>
+        </div>
 
-    <section class="items">
-      <!-- Example item -->
-      <div class="item">
-        <strong>Apples</strong> - 3 lbs (Expires: 2025-05-01) | Category: Produce
-        <button class="button button-delete">Delete</button>
-      </div>
-    </section>
-  </main>
+        <div class="filter">
+            <input type="text" id="filter-name" placeholder="Filter by name" />
+            <select id="category-filter">
+                <option value="">All Categories</option>
+                <option value="Dairy">Dairy</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Grains">Grains</option>
+                <!-- Add more categories here if needed -->
+            </select>
+        </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="app.js"></script>
+        <div class="items"></div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
